@@ -18,6 +18,11 @@ class UserRepository
         return $this->userModel->where('name', $name)->first();
     }
 
+    public function findByEmail($email)
+    {
+        return $this->userModel->where('email', $email)->first();
+    }
+
     public function isEmailUnique($email)
     {
         return $this->userModel->where('email', $email)->doesntExist();

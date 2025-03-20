@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
@@ -22,6 +23,22 @@ class UserService
             $user = $this->userRepository->createUser($userData);
 
             return $user;
+        }
+
+        return null;
+    }
+
+    public function login($data)
+    {
+        $user = $this->userRepository->findByEmail($data['email']);
+
+        if ($user && Hash::check($data['password'], $user->password)) {
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return [
+                'user' => $user,
+                'token' => $token,
+            ];
         }
 
         return null;
