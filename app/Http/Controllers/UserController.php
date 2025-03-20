@@ -99,12 +99,13 @@ class UserController extends Controller
     {
         $validated = $request->validated();
 
-        $user = $this->userService->login($validated);
+        $result = $this->userService->login($validated);
 
-        if ($user) {
+        if ($result) {
             return response()->json([
                 'message' => 'user logged in',
-                'user' => $validated,
+                'user' => $result['user'],
+                'token' => $result['token'],
             ], 200);
         }
 
