@@ -62,4 +62,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Response::class);
     }
+
+    public function isAgent()
+    {
+        return $this->role === 'agent';
+    }
+
+    public function isClient()
+    {
+        return $this->role === 'client';
+    }
 }
