@@ -47,4 +47,11 @@ class UserController extends Controller
 
         return response()->json(['message' => 'invalid credentials'], 401);
     }
+
+    public function logout(Request $request)
+    {
+        $this->userService->logout($request->user());
+
+        return response()->json(['message' => 'user logged out'], 200);
+    }
 }

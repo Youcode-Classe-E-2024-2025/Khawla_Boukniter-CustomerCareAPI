@@ -43,4 +43,11 @@ class UserService
 
         return null;
     }
+
+    public function logout($user)
+    {
+        $user->tokens()->delete();
+
+        return true;
+    }
 }
