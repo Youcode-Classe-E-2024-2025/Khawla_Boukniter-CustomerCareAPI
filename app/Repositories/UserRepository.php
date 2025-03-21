@@ -49,4 +49,11 @@ class UserRepository
 
         return $user ? $user->isAgent() : false;
     }
+
+    public function isClient($id)
+    {
+        $user = $this->findById($id);
+
+        return $user ? $user->isClient() : false;
+    }
 }
