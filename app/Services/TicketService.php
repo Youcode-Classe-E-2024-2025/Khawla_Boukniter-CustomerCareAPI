@@ -54,6 +54,10 @@ class TicketService
 
     public function createTicket($data)
     {
+        if ($this->userRepository->isAgent(Auth::id())) {
+            return null;
+        }
+
         $data['user_id'] = Auth::id();
         $data['status'] = 'open';
 
@@ -68,16 +72,14 @@ class TicketService
             return null;
         }
 
-        if (Auth::id() !== $ticket->user_id && !$this->userRepository->isAgent(Auth::id())) {
+        if (Auth::id() !== $ticket->user_id || $this->userRepository->isAgent(Auth::id())) {
             return null;
         }
 
-        if (!$this->userRepository->isAgent(Auth::id())) {
-            $data = [
-                'title' => $data['title'] ?? $ticket->title,
-                'description' => $data['description'] ?? $ticket->description,
-            ];
-        }
+        $data = [
+            'title' => $data['title'] ?? $ticket->title,
+            'description' => $data['description'] ?? $ticket->description,
+        ];
 
         return $this->ticketRepository->updateTicket($id, $data);
     }
