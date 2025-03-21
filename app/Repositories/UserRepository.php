@@ -23,6 +23,11 @@ class UserRepository
         return $this->userModel->where('email', $email)->first();
     }
 
+    public function findById($id)
+    {
+        return $this->userModel->find($id);
+    }
+
     public function isEmailUnique($email)
     {
         return $this->userModel->where('email', $email)->doesntExist();
@@ -31,5 +36,10 @@ class UserRepository
     public function createUser($userData)
     {
         return $this->userModel->create($userData);
+    }
+
+    public function getAllAgents()
+    {
+        return $this->userModel->where('role', 'agent')->get();
     }
 }
