@@ -6,6 +6,7 @@ use App\Repositories\TicketRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use tidy;
 
 class TicketService
 {
@@ -49,5 +50,46 @@ class TicketService
         }
 
         return $ticket;
+    }
+
+    public function createTicket($data)
+    {
+        $data['user_id'] = Auth::id();
+        $data['status'] = 'open';
+
+        return $this->ticketRepository->createTicket($data);
+    }
+
+    public function updateTicket($id, $data)
+    {
+        $ticket = $this->ticketRepository->findById($id);
+
+        if (!$ticket) {
+            return null;
+        }
+
+        if (Auth::id() !== $ticket->user_id && !$this->userRepository->isAgent(Auth::id())) {
+            return null;
+        }
+
+        if (!$this->userRepository->isAgent(Auth::id())) {
+            $data = [
+                'title' => $data['title'] ?? $ticket->title,
+                'description' => $data['description'] ?? $ticket->description,
+            ];
+        }
+
+        return $this->ticketRepository->updateTicket($id, $data);
+    }
+
+    public function deleteTicket($id)
+    {
+        $ticket = $this->ticketRepository->findById($id);
+
+        if (!$ticket) {
+            return false;
+        }
+
+        return $this->ticketRepository->deleteTicket($id);
     }
 }
