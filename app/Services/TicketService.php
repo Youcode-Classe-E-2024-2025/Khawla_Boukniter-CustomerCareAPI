@@ -84,7 +84,7 @@ class TicketService
         return $this->ticketRepository->updateTicket($id, $data);
     }
 
-    public function deleteTicket($id)
+    public function cancelTicket($id)
     {
         $ticket = $this->ticketRepository->findById($id);
 
@@ -92,6 +92,10 @@ class TicketService
             return false;
         }
 
-        return $this->ticketRepository->deleteTicket($id);
+        if (Auth::id() !== $ticket->user_id) {
+            return false;
+        }
+
+        return $this->ticketRepository->changeStatus($id, 'cancelled');
     }
 }
