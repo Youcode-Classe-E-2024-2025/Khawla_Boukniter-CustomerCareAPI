@@ -60,8 +60,14 @@ class ResponseService
             return null;
         }
 
-        if (Auth::id() !== $ticket->user_id && !$this->userRepository->isAgent(Auth::id())) {
-            return null;
+        if ($this->userRepository->isAgent(Auth::id())) {
+            if ($ticket->agent_id !== Auth::id()) {
+                return null;
+            }
+        } else {
+            if ($ticket->user_id !== Auth::id()) {
+                return null;
+            }
         }
 
         $data['user_id'] = Auth::id();
