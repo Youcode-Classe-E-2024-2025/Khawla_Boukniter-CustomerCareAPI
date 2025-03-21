@@ -75,17 +75,6 @@ class TicketRepository
         return null;
     }
 
-    public function deleteTicket($id)
-    {
-        $ticket = $this->findById($id);
-
-        if ($ticket) {
-            return $ticket->delete();
-        }
-
-        return false;
-    }
-
     public function assignTicket($ticketId, $agentId)
     {
         $ticket = $this->findById($ticketId);
