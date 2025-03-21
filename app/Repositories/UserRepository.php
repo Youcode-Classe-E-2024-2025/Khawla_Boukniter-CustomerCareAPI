@@ -42,4 +42,11 @@ class UserRepository
     {
         return $this->userModel->where('role', 'agent')->get();
     }
+
+    public function isAgent($id)
+    {
+        $user = $this->findById($id);
+
+        return $user ? $user->isAgent() : false;
+    }
 }
