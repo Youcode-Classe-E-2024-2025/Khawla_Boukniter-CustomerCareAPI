@@ -98,4 +98,18 @@ class TicketService
 
         return $this->ticketRepository->changeStatus($id, 'cancelled');
     }
+
+    public function assignTicket($id)
+    {
+        if (!$this->userRepository->isAgent(Auth::id())) {
+            return null;
+        }
+
+        $ticket = $this->ticketRepository->findById($id);
+        if (!$ticket) {
+            return null;
+        }
+
+        return $this->ticketRepository->assignTicket($id, Auth::id());
+    }
 }
