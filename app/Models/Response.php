@@ -10,7 +10,6 @@ class Response extends Model
         'ticket_id',
         'user_id',
         'content',
-        'is_internal',
     ];
 
     public function user()
