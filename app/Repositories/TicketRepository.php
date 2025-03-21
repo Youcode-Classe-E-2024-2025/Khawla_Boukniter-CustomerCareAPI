@@ -111,6 +111,8 @@ class TicketRepository
 
             if ($status === 'resolved') {
                 $ticket->resolved_at = now();
+            } else if ($status === 'cancelled') {
+                $ticket->cancelled_at = now();
             }
 
             $ticket->save();
