@@ -125,10 +125,6 @@ class TicketService
             if (Auth::id() !== $ticket->user_id || $status !== 'cancelled') {
                 return null;
             }
-        } else {
-            if ($ticket->agent_id !== Auth::id()) {
-                return null;
-            }
         }
 
         return $this->ticketRepository->changeStatus($id, $status);
