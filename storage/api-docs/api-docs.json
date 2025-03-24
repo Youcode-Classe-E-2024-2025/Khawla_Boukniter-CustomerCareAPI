@@ -42,13 +42,24 @@
                 ]
             }
         },
-        "/api/response": {
+        "/api/tickets/{ticket_id}/responses": {
             "post": {
                 "tags": [
                     "Responses"
                 ],
                 "summary": "Add a response to a ticket",
-                "operationId": "44989cf081dbea4be61c494f57ed7c98",
+                "operationId": "5cdf2c6cd6418d2f7ecfd79add59c620",
+                "parameters": [
+                    {
+                        "name": "ticket_id",
+                        "in": "path",
+                        "description": "Ticket ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {

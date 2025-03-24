@@ -6,6 +6,7 @@ use App\Repositories\ResponseRepository;
 use App\Repositories\TicketRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ResponseService
 {
@@ -22,17 +23,29 @@ class ResponseService
 
     public function getTicketResponses($id)
     {
-        $ticket = $this->ticketRepository->findById($id);
+        Log::info('ResponseService: Getting responses for ticket', ['ticket_id' => $id]);
+        try {
+            $ticket = $this->ticketRepository->findById($id);
 
-        if (!$ticket) {
-            return null;
+            if (!$ticket) {
+                return null;
+            }
+
+            if (Auth::id() !== $ticket->user_id && !$this->userRepository->isAgent(Auth::id())) {
+                return null;
+            }
+
+            Log::info('ResponseService: Retrieved responses successfully');
+            return $this->responseRepository->getTicketResponses($id);
+        } catch (\Exception $e) {
+            Log::error('ResponseService: Error getting responses', [
+                'ticket_id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            throw $e;
         }
-
-        if (Auth::id() !== $ticket->user_id && !$this->userRepository->isAgent(Auth::id())) {
-            return null;
-        }
-
-        return $this->responseRepository->getTicketResponses($id);
     }
 
     public function getResponse($id)

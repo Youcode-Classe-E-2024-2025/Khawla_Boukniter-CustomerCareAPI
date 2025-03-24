@@ -20,7 +20,7 @@ class ResponseRepository
 
     public function getTicketResponses($id)
     {
-        return $this->responseModel->where('ticket_id', $id)->with('users')->orderBy('created_at', 'desc')->get();
+        return $this->responseModel->where('ticket_id', $id)->with('user')->orderBy('created_at', 'desc')->get();
     }
 
     public function createResponse($data)

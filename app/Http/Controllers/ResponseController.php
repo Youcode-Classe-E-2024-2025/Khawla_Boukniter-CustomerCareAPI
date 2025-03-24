@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Tag(
@@ -49,19 +50,42 @@ class ResponseController extends Controller
      */
     public function index($id)
     {
-        $responses = $this->responseService->getTicketResponses($id);
+        Log::info('Getting responses for ticket', ['ticket_id' => $id]);
+        try {
+            $responses = $this->responseService->getTicketResponses($id);
+            Log::info('Retrieved responses successfully', ['count' => count($responses)]);
 
-        return response()->json([
-            'responses' => $responses,
-        ], 200);
+            return response()->json([
+                'responses' => $responses,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error getting responses', [
+                'ticket_id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            return response()->json([
+                'message' => 'An error occurred while retrieving responses',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * @OA\Post(
-     *     path="/api/response",
+     *     path="/api/tickets/{ticket_id}/responses",
      *     summary="Add a response to a ticket",
      *     tags={"Responses"},
      *     security={{ "bearerAuth": {} }},
+     * @OA\Parameter(
+     *         name="ticket_id",
+     *         in="path",
+     *         description="Ticket ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -87,12 +111,13 @@ class ResponseController extends Controller
      *     )
      * )
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
         $validated = $request->validate([
-            'ticket_id' => 'required|string|exists:tickets,id',
             'content' => 'required|string'
         ]);
+
+        $validated['ticket_id'] = $id;
 
         $response = $this->responseService->createResponse($validated);
 

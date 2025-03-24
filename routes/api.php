@@ -26,4 +26,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('response', ResponseController::class)->except('index');
 
     Route::get('tickets/{id}/responses', [ResponseController::class, 'index']);
+    Route::post('tickets/{ticket_id}/responses', [ResponseController::class, 'store']);
 });
