@@ -49,6 +49,14 @@ class UserController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="User registered",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="user", type="object", 
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="email", type="string", format="email")
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=422,
