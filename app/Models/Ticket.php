@@ -12,7 +12,8 @@ class Ticket extends Model
         'title',
         'description',
         'status',
-        'resolved_at'
+        'resolved_at',
+        'cancelled_at'
     ];
 
     public function user()
@@ -22,10 +23,10 @@ class Ticket extends Model
 
     public function agent()
     {
-        return $this->belongsTo(User::class, 'agant_id');
+        return $this->belongsTo(User::class, 'agent_id');
     }
 
-    public function reponses()
+    public function responses()
     {
         return $this->hasMany(Response::class);
     }
