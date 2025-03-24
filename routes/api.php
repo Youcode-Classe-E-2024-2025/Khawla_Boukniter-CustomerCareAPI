@@ -22,7 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets/{id}/assign', [TicketController::class, 'assign']);
     Route::post('/tickets/{id}/status', [TicketController::class, 'changeStatus']);
 
+
     Route::apiResource('response', ResponseController::class)->except('index');
 
-    Route::get('ticket/{id}/responses', [ResponseController::class, 'index']);
+    Route::get('tickets/{id}/responses', [ResponseController::class, 'index']);
 });
