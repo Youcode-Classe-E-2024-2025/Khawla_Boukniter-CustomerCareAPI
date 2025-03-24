@@ -1,66 +1,165 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Customer Care API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Architecture du projet
 
-## About Laravel
+Ce projet suit le Service Layer Design Pattern pour séparer la logique métier des contrôleurs :
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Controllers** : Gèrent les requêtes HTTP et délèguent aux services
+- **Requests** : Gèrent la validation des données entrantes
+- **Services** : Contiennent la logique métier et les règles de l'application
+- **Repositories** : Gèrent l'accès aux données et les interactions avec la base de données
+- **Models** : Représentent les entités de la base de données
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Structure des dossiers
+```
+app/
+├── Http/
+│   └── Controllers/
+│   │   ├── UserController.php
+│   │   ├── TicketController.php
+│   │   └── ResponseController.php
+│   ├── Requests/
+│   │   ├── LoginRequest.php
+│   │   └── RegisterRequest.php
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+├── Models/
+│   ├── User.php
+│   ├── Ticket.php
+│   └── Response.php
+├── Services/
+│   ├── UserService.php
+│   ├── TicketService.php
+│   └── ResponseService.php
+├── Repositories/
+│   ├── UserRepository.php
+│   ├── TicketRepository.php
+│   └── ResponseRepository.php
+```
 
-## Learning Laravel
+## Fonctionnalités principales
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Gestion des utilisateurs
+- Authentification avec Laravel Sanctum
+- Gestion des rôles (client, agent)
+- Enregistrement et connexion des utilisateurs
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Gestion des tickets
+- Création de tickets par les clients
+- Assignation de tickets aux agents
+- Suivi et mise à jour du statut des tickets (ouvert, en cours, résolu, fermé, annulé)
+- Filtrage des tickets par statut et recherche par mots-clés
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Gestion des réponses
+- Ajout de réponses aux tickets
+- Consultation de l'historique des échanges
+- Mise à jour et suppression des réponses
 
-## Laravel Sponsors
+## Modèles de données
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### User
+- Représente les utilisateurs du système (clients et agents)
+- Gère l'authentification et les autorisations
 
-### Premium Partners
+### Ticket
+- Contient les informations sur les demandes de support
+- Inclut le titre, la description, le statut et les dates importantes
+- Lié à un utilisateur (créateur) et potentiellement à un agent
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Response
+- Représente les réponses aux tickets
+- Contient le contenu de la réponse et les références à l'utilisateur et au ticket
 
-## Contributing
+## API Endpoints
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+L'API expose plusieurs endpoints pour interagir avec le système :
 
-## Code of Conduct
+### Authentification
+- POST `/api/register` - Inscription d'un nouvel utilisateur
+- POST `/api/login` - Connexion et génération de token
+- POST `/api/logout` - Déconnexion
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Tickets
+- GET `/api/tickets` - Liste des tickets (filtrée selon le rôle)
+- POST `/api/tickets` - Création d'un nouveau ticket
+- GET `/api/tickets/{id}` - Détails d'un ticket spécifique
+- PUT `/api/tickets/{id}` - Mise à jour d'un ticket
+- DELETE `/api/tickets/{id}` - Suppression/annulation d'un ticket
+- POST `/api/tickets/{id}/assign` - Assignation d'un ticket à un agent
+- PUT `/api/tickets/{id}/status` - Changement de statut d'un ticket
 
-## Security Vulnerabilities
+### Réponses
+- GET `/api/tickets/{ticket_id}/responses` - Liste des réponses à un ticket
+- POST `/api/response` - Ajout d'une réponse
+- GET `/api/response/{id}` - Détails d'une réponse
+- PUT `/api/response/{id}` - Mise à jour d'une réponse
+- DELETE `/api/response/{id}` - Suppression d'une réponse
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Sécurité et autorisations
 
-## License
+Le système implémente des contrôles d'accès basés sur les rôles :
+- Les clients peuvent créer des tickets et y répondre
+- Les agents peuvent voir tous les tickets, se les assigner et changer leur statut
+- Les utilisateurs ne peuvent voir que leurs propres tickets et réponses, sauf les agents
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Installation et configuration
+
+1. Cloner le dépôt
+```bash
+git clone https://github.com/Youcode-Classe-E-2024-2025/Khawla_Boukniter-CustomerCareAPI.git
+cd Khawla_Boukniter-CustomerCareAPI
+```
+
+2. Installer les dépendances
+```bash
+composer install
+```
+
+3. Configurer l'environnement
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+4. Configurer la base de données dans .env
+```
+DB_CONNECTION=pgsql
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=dbname
+DB_USERNAME=username
+DB_PASSWORD=password
+```
+
+5. Exécuter les migrations
+```bash
+php artisan migrate
+```
+
+6. Lancer le serveur
+```bash
+php artisan serve
+```
+
+## Documentation API
+
+La documentation Swagger est disponible à l'adresse `/api/documentation`.
+
+## Authentification
+
+L'API utilise Laravel Sanctum pour l'authentification. Pour obtenir un token :
+
+```bash
+POST /api/login
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+```
+
+## Tests et utilisation
+
+Pour tester l'API, vous pouvez utiliser Postman ou tout autre client HTTP. Assurez-vous d'inclure le token d'authentification dans les en-têtes des requêtes après vous être connecté :
+
+```
+Authorization: Bearer {votre_token}
+```
