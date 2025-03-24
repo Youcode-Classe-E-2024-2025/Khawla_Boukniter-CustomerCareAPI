@@ -5,12 +5,6 @@ namespace App\Http\Controllers;
 use App\Services\TicketService;
 use Illuminate\Http\Request;
 
-/**
- * @OA\Tag(
- *     name="Tickets",
- *     description="API Endpoints for ticket management"
- * )
- */
 class TicketController extends Controller
 {
     protected $ticketService;
