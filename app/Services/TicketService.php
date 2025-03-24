@@ -126,7 +126,11 @@ class TicketService
                 return null;
             }
         } else {
-            return null;
+            if ($ticket->agent_id !== Auth::id()) {
+                return null;
+            }
         }
+
+        return $this->ticketRepository->changeStatus($id, $status);
     }
 }
