@@ -39,7 +39,7 @@ class TicketController extends Controller
             'description' => 'required|string',
         ]);
 
-        $ticket = $this->ticketService->createTicket([$validated]);
+        $ticket = $this->ticketService->createTicket($validated);
 
         if (!$ticket) {
             return response()->json([
@@ -49,7 +49,7 @@ class TicketController extends Controller
 
         return response()->json([
             'ticket' => $ticket,
-            'message' => 'ticket creaetd'
+            'message' => 'ticket created'
         ], 201);
     }
 
