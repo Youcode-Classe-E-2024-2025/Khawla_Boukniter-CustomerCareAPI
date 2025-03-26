@@ -40,10 +40,11 @@ class UserController extends Controller
      *     tags={"Authentication"},
      *     @OA\RequestBody(
      *         @OA\JsonContent(
-     *             required={"name", "email", "password"},
+     *             required={"name", "email", "password", "role"},
      *             @OA\Property(property="name", type="string"),
      *             @OA\Property(property="email", type="string", format="email"),
-     *             @OA\Property(property="password", type="string")
+     *             @OA\Property(property="password", type="string"),
+     *             @OA\Property(property="role", type="string", enum={"client", "agent"})
      *         )
      *     ),
      *     @OA\Response(
