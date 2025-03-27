@@ -6,7 +6,6 @@ use App\Repositories\TicketRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use tidy;
 
 class TicketService
 {

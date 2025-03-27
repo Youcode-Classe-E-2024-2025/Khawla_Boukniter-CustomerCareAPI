@@ -572,7 +572,8 @@
                                 "required": [
                                     "name",
                                     "email",
-                                    "password"
+                                    "password",
+                                    "role"
                                 ],
                                 "properties": {
                                     "name": {
@@ -584,6 +585,13 @@
                                     },
                                     "password": {
                                         "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "client",
+                                            "agent"
+                                        ]
                                     }
                                 },
                                 "type": "object"
