@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import authService from '../../services/authService';
+import authService from '../services/authService';
 
 function Navbar() {
     const navigate = useNavigate();
