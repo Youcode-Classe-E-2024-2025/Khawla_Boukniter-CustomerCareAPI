@@ -24,6 +24,10 @@ const ticketService = {
                 params.append('search', filters.search);
             }
 
+            if (filters.assigned_to_me) {
+                params.append('assigned_to_me', 'true');
+            }
+
             params.append('perpage', perpage);
 
             const response = await axios.get(`${API_BASE_URL}/tickets?${params.toString()}`, getAuthHeaders());

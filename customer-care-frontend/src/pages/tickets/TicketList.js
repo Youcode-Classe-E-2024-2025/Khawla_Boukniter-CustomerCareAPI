@@ -14,6 +14,8 @@ function TicketList() {
 
     const [isAgent, setIsAgent] = useState(false);
 
+    const [showAssignedOnly, setShowAssignedOnly] = useState(false);
+
     useEffect(() => {
         const currentUser = authService.getCurrentUser();
         setIsAgent(currentUser?.role === 'agent');
@@ -24,6 +26,11 @@ function TicketList() {
     const loadTickets = async () => {
         setLoading(true);
         try {
+            const updatedFilters = { ...filters };
+            if (isAgent && showAssignedOnly) {
+                updatedFilters.assigned_to_me = true;
+            }
+
             const response = await ticketService.getAllTickets(filters);
             setTickets(response.tickets.data || []);
         } catch (err) {
@@ -146,6 +153,22 @@ function TicketList() {
                         Filtrer
                     </button>
                 </form>
+            </div>
+
+            <div>
+                {isAgent && (
+                    <div style={styles.filterGroup}>
+                        <label style={styles.filterLabel}>
+                            <input
+                                type="checkbox"
+                                checked={showAssignedOnly}
+                                onChange={() => setShowAssignedOnly(!showAssignedOnly)}
+                                style={styles.checkbox}
+                            />
+                            Afficher uniquement mes tickets assignés
+                        </label>
+                    </div>
+                )}
             </div>
 
             {loading && <p style={styles.message}>Chargement des tickets...</p>}
