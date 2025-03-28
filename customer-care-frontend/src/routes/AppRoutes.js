@@ -9,16 +9,10 @@ import CreateTicket from '../pages/tickets/CreateTicket';
 import authService from '../services/authService';
 
 const PrivateRoute = ({ children }) => {
-    const isAuthenticated = authService.isAuthenticated();
-
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    return children;
+    return authService.isAuthenticated() ? children : <Navigate to="/login" />;
 };
 
-function AppRoutes() {
+const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
@@ -50,9 +44,9 @@ function AppRoutes() {
                 }
             />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" />} />
         </Routes>
     );
-}
+};
 
 export default AppRoutes;
