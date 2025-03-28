@@ -3,7 +3,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const LoginPage = () => {
+const Login = () => {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -73,4 +73,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default Login;
