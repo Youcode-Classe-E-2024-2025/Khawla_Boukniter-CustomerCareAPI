@@ -72,7 +72,27 @@ const ticketService = {
         } catch (error) {
             throw error.response ? error.response.data : error;
         }
-    }
+    },
+
+    getTicket: async (id) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/tickets/${id}`, getAuthHeaders());
+
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : error;
+        }
+    },
+
+    updateTicket: async (id, ticketData) => {
+        try {
+            const response = await axios.put(`${API_BASE_URL}/tickets/${id}`, ticketData, getAuthHeaders());
+
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : error;
+        }
+    },
 };
 
 export default ticketService;
