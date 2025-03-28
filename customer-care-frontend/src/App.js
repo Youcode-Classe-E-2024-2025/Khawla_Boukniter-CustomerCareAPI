@@ -1,17 +1,17 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import Navbar from './components/common/Navbar';
+import Navbar from './components/Navbar';
 import AppRoutes from './routes/AppRoutes';
+import './App.css';
 
 function App() {
   return (
     <Router>
       <div className="app">
         <Navbar />
-        <main className="main-content">
+        <div className="main-content">
           <AppRoutes />
-        </main>
+        </div>
       </div>
     </Router>
   );
