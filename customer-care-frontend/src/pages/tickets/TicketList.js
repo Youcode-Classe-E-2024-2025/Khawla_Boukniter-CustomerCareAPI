@@ -11,18 +11,25 @@ function TicketList() {
     const [isAgent, setIsAgent] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+
     useEffect(() => {
         const user = authService.getCurrentUser();
         setIsAgent(user?.role === 'agent');
         setCurrentUser(user);
         loadTickets();
-    }, []);
+    }, [currentPage, perPage]);
 
     const loadTickets = async () => {
         setLoading(true);
         try {
-            const response = await ticketService.getAllTickets(filters);
+            const response = await ticketService.getAllTickets({ ...filters, page: currentPage, perpage: perPage });
             setTickets(response.tickets.data || []);
+
+            setTotalPages(response.tickets.last_page || 1);
+            setCurrentPage(response.tickets.current_page || 1);
         } catch (err) {
             setError('Erreur lors du chargement des tickets');
         } finally {
@@ -36,8 +43,15 @@ function TicketList() {
 
     const applyFilters = (e) => {
         e.preventDefault();
+        setCurrentPage(1);
         loadTickets();
     };
+
+    const handlePageChange = (newPage) => {
+        if (newPage > 0 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    }
 
     const handleAssignTicket = async (id) => {
         try {
@@ -163,6 +177,56 @@ function TicketList() {
         </div>
     );
 
+    const renderPagination = () => {
+        const pages = [];
+
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, startPage + 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+                <button
+                    key={i}
+                    onClick={() => handlePageChange(i)}
+                    style={{
+                        ...styles.pageButton,
+                        ...(i === currentPage ? styles.currentPageButton : {})
+                    }}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        return (
+            <div style={styles.pagination}>
+                <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                        ...styles.pageButton,
+                        opacity: currentPage === 1 ? 0.5 : 1
+                    }}
+                >
+                    &laquo; Précédent
+                </button>
+
+                {pages}
+
+                <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                        ...styles.pageButton,
+                        opacity: currentPage === totalPages ? 0.5 : 1
+                    }}
+                >
+                    Suivant &raquo;
+                </button>
+            </div>
+        );
+    };
+
     return (
         <div style={styles.container}>
             <div style={styles.header}>
@@ -227,6 +291,8 @@ function TicketList() {
                     {tickets.map(ticket => renderTicketCard(ticket))}
                 </div>
             )}
+
+            {!loading && !error && tickets.length > 0 && renderPagination()}
         </div>
     );
 }
@@ -307,6 +373,15 @@ const styles = {
     viewButton: {
         padding: '6px 12px', backgroundColor: '#4a5568', color: 'white', border: 'none',
         borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500', textDecoration: 'none'
+    },
+    pagination: {
+        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '20px',
+    },
+    pageButton: {
+        padding: '8px 12px', backgroundColor: '#f8f9fa', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem',
+    },
+    currentPageButton: {
+        backgroundColor: '#3498db', color: 'white', border: '1px solid #3498db',
     }
 };
 
