@@ -16,11 +16,11 @@ const ticketService = {
         try {
             let params = new URLSearchParams();
 
-            if (filters.status) {
+            if (filters.status && filters.status.trim() !== '') {
                 params.append('status', filters.status);
             }
 
-            if (filters.search) {
+            if (filters.search && filters.search.trim() !== '') {
                 params.append('search', filters.search);
             }
 

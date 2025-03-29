@@ -38,7 +38,8 @@ function TicketList() {
     };
 
     const handleFilterChange = (e) => {
-        setFilters({ ...filters, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        setFilters({ ...filters, [name]: value });
     };
 
     const applyFilters = (e) => {
@@ -264,6 +265,12 @@ function TicketList() {
                             onChange={handleFilterChange}
                             style={styles.filterInput}
                             placeholder="Rechercher..."
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    applyFilters(e);
+                                }
+                            }}
                         />
                     </div>
 

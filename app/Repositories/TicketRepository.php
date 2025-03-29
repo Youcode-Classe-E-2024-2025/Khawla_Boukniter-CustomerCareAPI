@@ -17,14 +17,14 @@ class TicketRepository
     {
         $query = $this->ticketModel->with(['user', 'agent']);
 
-        if (isset($filters['status'])) {
+        if (isset($filters['status']) && !empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (isset($filters['search'])) {
+        if (isset($filters['search']) && !empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search)->orWhere('description', 'like', '%' . $search);
+                $q->where('title', 'ILIKE', '%' . $search . '%')->orWhere('description', 'ILIKE', '%' . $search . '%');
             });
         }
 
@@ -37,6 +37,14 @@ class TicketRepository
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('description', 'ILIKE', '%' . $search . '%');
+            });
         }
 
         return $query->latest()->paginate($perpage);
