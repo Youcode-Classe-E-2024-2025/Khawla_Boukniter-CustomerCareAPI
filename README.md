@@ -14,14 +14,13 @@ Ce projet suit le Service Layer Design Pattern pour séparer la logique métier 
 ```
 app/
 ├── Http/
-│   └── Controllers/
+│   ├── Controllers/
 │   │   ├── UserController.php
 │   │   ├── TicketController.php
 │   │   └── ResponseController.php
-│   ├── Requests/
-│   │   ├── LoginRequest.php
-│   │   └── RegisterRequest.php
-
+│   └── Requests/
+│       ├── LoginUserRequest.php
+│       └── RegisterUserRequest.php
 ├── Models/
 │   ├── User.php
 │   ├── Ticket.php
@@ -30,10 +29,27 @@ app/
 │   ├── UserService.php
 │   ├── TicketService.php
 │   └── ResponseService.php
-├── Repositories/
-│   ├── UserRepository.php
-│   ├── TicketRepository.php
-│   └── ResponseRepository.php
+└── Repositories/
+    ├── UserRepository.php
+    ├── TicketRepository.php
+    └── ResponseRepository.php
+
+customer-care-frontend/
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   │   ├── auth/
+│   │   ├── tickets/
+│   │   └── Home.js
+│   ├── routes/
+│   │   └── AppRoutes.js
+│   ├── services/
+│   │   ├── authService.js
+│   │   ├── ticketService.js
+│   │   └── responseService.js
+│   └── App.js
+└── package.json
 ```
 
 ## Fonctionnalités principales
@@ -89,10 +105,20 @@ L'API expose plusieurs endpoints pour interagir avec le système :
 
 ### Réponses
 - GET `/api/tickets/{ticket_id}/responses` - Liste des réponses à un ticket
-- POST `/api/response` - Ajout d'une réponse
+- POST `tickets/{ticket_id}/responses` - Ajout d'une réponse
 - GET `/api/response/{id}` - Détails d'une réponse
 - PUT `/api/response/{id}` - Mise à jour d'une réponse
 - DELETE `/api/response/{id}` - Suppression d'une réponse
+
+## Interface utilisateur React
+L'application frontend développée avec React offre une interface intuitive pour interagir avec l'API :
+
+- **Pages d'authentification** : Inscription et connexion des utilisateurs
+- **Tableau de bord** : Vue d'ensemble des tickets
+- **Liste des tickets** : Affichage paginé avec filtres et recherche
+- **Détail d'un ticket** : Consultation et gestion des tickets et réponses
+- **Création de ticket** : Formulaire pour soumettre de nouveaux tickets
+- **Gestion des réponses** : Ajout, modification et suppression des réponses
 
 ## Sécurité et autorisations
 
@@ -102,6 +128,8 @@ Le système implémente des contrôles d'accès basés sur les rôles :
 - Les utilisateurs ne peuvent voir que leurs propres tickets et réponses, sauf les agents
 
 ## Installation et configuration
+
+### Backend (Laravel)
 
 1. Cloner le dépôt
 ```bash
@@ -140,6 +168,25 @@ php artisan migrate
 php artisan serve
 ```
 
+### Frontend (React)
+
+1. Naviguer vers le dossier frontend
+```bash
+cd customer-care-frontend
+```
+
+2. Installer les dépendances
+```bash
+npm install
+```
+
+3. Configurer l'URL de l'API Modifiez le fichier `src/config/api.js` pour pointer vers votre serveur API.
+
+4. Lancer l'application
+```bash
+npm start
+```
+
 ## Documentation API
 
 La documentation Swagger est disponible à l'adresse `/api/documentation`.
@@ -156,10 +203,8 @@ POST /api/login
 }
 ```
 
-## Tests et utilisation
+Incluez le token dans les en-têtes des requêtes après vous être connecté :
 
-Pour tester l'API, vous pouvez utiliser Postman ou tout autre client HTTP. Assurez-vous d'inclure le token d'authentification dans les en-têtes des requêtes après vous être connecté :
-
-```
+```bash
 Authorization: Bearer {votre_token}
 ```
