@@ -7,46 +7,31 @@ function TicketList() {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filters, setFilters] = useState({
-        status: '',
-        search: ''
-    });
-
+    const [filters, setFilters] = useState({ status: '', search: '' });
     const [isAgent, setIsAgent] = useState(false);
-
-    const [showAssignedOnly, setShowAssignedOnly] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        const currentUser = authService.getCurrentUser();
-        setIsAgent(currentUser?.role === 'agent');
-
+        const user = authService.getCurrentUser();
+        setIsAgent(user?.role === 'agent');
+        setCurrentUser(user);
         loadTickets();
     }, []);
 
     const loadTickets = async () => {
         setLoading(true);
         try {
-            const updatedFilters = { ...filters };
-            if (isAgent && showAssignedOnly) {
-                updatedFilters.assigned_to_me = true;
-            }
-
             const response = await ticketService.getAllTickets(filters);
             setTickets(response.tickets.data || []);
         } catch (err) {
             setError('Erreur lors du chargement des tickets');
-            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleFilterChange = (e) => {
-        const { name, value } = e.target;
-        setFilters({
-            ...filters,
-            [name]: value
-        });
+        setFilters({ ...filters, [e.target.name]: e.target.value });
     };
 
     const applyFilters = (e) => {
@@ -59,7 +44,7 @@ function TicketList() {
             await ticketService.assignTicket(id);
             loadTickets();
         } catch (err) {
-            console.error('Erreur lors de l\'assignation du ticket:', err);
+            console.error('Erreur lors de l\'assignation:', err);
         }
     };
 
@@ -78,40 +63,113 @@ function TicketList() {
                 await ticketService.cancelTicket(id);
                 loadTickets();
             } catch (err) {
-                console.error('Erreur lors de l\'annulation du ticket:', err);
+                console.error('Erreur lors de l\'annulation:', err);
             }
         }
     };
 
-    const getStatusBadgeColor = (status) => {
-        switch (status) {
-            case 'open': return '#3498db';
-            case 'in_progress': return '#f39c12';
-            case 'resolved': return '#2ecc71';
-            case 'closed': return '#7f8c8d';
-            case 'cancelled': return '#e74c3c';
-            default: return '#95a5a6';
-        }
+    const getStatusColor = (status) => {
+        const colors = {
+            open: '#3182ce',
+            in_progress: '#dd6b20',
+            resolved: '#38a169',
+            closed: '#718096',
+            cancelled: '#e53e3e'
+        };
+        return colors[status] || '#718096';
     };
 
     const translateStatus = (status) => {
-        switch (status) {
-            case 'open': return 'Ouvert';
-            case 'in_progress': return 'En cours';
-            case 'resolved': return 'Résolu';
-            case 'closed': return 'Fermé';
-            case 'cancelled': return 'Annulé';
-            default: return status;
-        }
+        const translations = {
+            open: 'Ouvert',
+            in_progress: 'En cours',
+            resolved: 'Résolu',
+            closed: 'Fermé',
+            cancelled: 'Annulé'
+        };
+        return translations[status] || status;
     };
+
+    const renderTicketCard = (ticket) => (
+        <div key={ticket.id} style={styles.ticketCard}>
+            <div style={styles.ticketHeader}>
+                <div style={styles.titleContainer}>
+                    <Link to={`/tickets/${ticket.id}`} style={styles.ticketTitle}>
+                        {ticket.title}
+                    </Link>
+                    <span style={{
+                        ...styles.statusBadge,
+                        backgroundColor: getStatusColor(ticket.status)
+                    }}>
+                        {translateStatus(ticket.status)}
+                    </span>
+                </div>
+            </div>
+
+            <p style={styles.ticketDescription}>
+                {ticket.description.length > 120
+                    ? `${ticket.description.substring(0, 120)}...`
+                    : ticket.description}
+            </p>
+
+            <div style={styles.ticketFooter}>
+                <div style={styles.ticketInfo}>
+                    <div style={styles.infoItem}>
+                        <span style={styles.infoLabel}>Client:</span>
+                        <span style={styles.infoValue}>{ticket.user?.name || 'Inconnu'}</span>
+                    </div>
+                    <div style={styles.infoItem}>
+                        <span style={styles.infoLabel}>Agent:</span>
+                        <span style={styles.infoValue}>{ticket.agent?.name || 'Non assigné'}</span>
+                    </div>
+                </div>
+
+                <div style={styles.ticketActions}>
+                    {isAgent && !ticket.agent_id && ticket.status === 'open' && (
+                        <button
+                            onClick={() => handleAssignTicket(ticket.id)}
+                            style={styles.assignButton}
+                        >
+                            Prendre en charge
+                        </button>
+                    )}
+
+                    {isAgent && ticket.agent_id === currentUser?.id && (
+                        <select
+                            value={ticket.status}
+                            onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
+                            style={styles.statusSelect}
+                        >
+                            <option value="in_progress">En cours</option>
+                            <option value="resolved">Résolu</option>
+                            <option value="closed">Fermé</option>
+                        </select>
+                    )}
+
+                    {!isAgent && ticket.status === 'open' && (
+                        <button
+                            onClick={() => handleCancelTicket(ticket.id)}
+                            style={styles.cancelButton}
+                        >
+                            Annuler
+                        </button>
+                    )}
+
+                    <Link to={`/tickets/${ticket.id}`} style={styles.viewButton}>
+                        Détails
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <h1 style={styles.title}>Mes tickets</h1>
+                <h1 style={styles.pageTitle}>Mes tickets</h1>
                 {!isAgent && (
                     <Link to="/tickets/new" style={styles.createButton}>
-                        Créer un ticket
+                        Nouveau ticket
                     </Link>
                 )}
             </div>
@@ -119,15 +177,13 @@ function TicketList() {
             <div style={styles.filtersContainer}>
                 <form onSubmit={applyFilters} style={styles.filtersForm}>
                     <div style={styles.filterGroup}>
-                        <label htmlFor="status" style={styles.filterLabel}>Statut:</label>
                         <select
-                            id="status"
                             name="status"
                             value={filters.status}
                             onChange={handleFilterChange}
                             style={styles.filterSelect}
                         >
-                            <option value="">Tous</option>
+                            <option value="">Tous les statuts</option>
                             <option value="open">Ouvert</option>
                             <option value="in_progress">En cours</option>
                             <option value="resolved">Résolu</option>
@@ -137,10 +193,8 @@ function TicketList() {
                     </div>
 
                     <div style={styles.filterGroup}>
-                        <label htmlFor="search" style={styles.filterLabel}>Recherche:</label>
                         <input
                             type="text"
-                            id="search"
                             name="search"
                             value={filters.search}
                             onChange={handleFilterChange}
@@ -155,106 +209,22 @@ function TicketList() {
                 </form>
             </div>
 
-            <div>
-                {isAgent && (
-                    <div style={styles.filterGroup}>
-                        <label style={styles.filterLabel}>
-                            <input
-                                type="checkbox"
-                                checked={showAssignedOnly}
-                                onChange={() => setShowAssignedOnly(!showAssignedOnly)}
-                                style={styles.checkbox}
-                            />
-                            Afficher uniquement mes tickets assignés
-                        </label>
-                    </div>
-                )}
-            </div>
-
-            {loading && <p style={styles.message}>Chargement des tickets...</p>}
-            {error && <p style={styles.errorMessage}>{error}</p>}
-
-            {!loading && !error && tickets.length === 0 && (
-                <p style={styles.message}>Aucun ticket trouvé.</p>
-            )}
-
-            {!loading && !error && tickets.length > 0 && (
-                <div style={styles.ticketList}>
-                    {tickets.map(ticket => (
-                        <div key={ticket.id} style={styles.ticketCard}>
-                            <div style={styles.ticketHeader}>
-                                <h3 style={styles.ticketTitle}>
-                                    <Link to={`/tickets/${ticket.id}`} style={styles.ticketLink}>
-                                        {ticket.title}
-                                    </Link>
-                                </h3>
-                                <span
-                                    style={{
-                                        ...styles.statusBadge,
-                                        backgroundColor: getStatusBadgeColor(ticket.status)
-                                    }}
-                                >
-                                    {translateStatus(ticket.status)}
-                                </span>
-                            </div>
-
-                            <p style={styles.ticketDescription}>
-                                {ticket.description.length > 100
-                                    ? `${ticket.description.substring(0, 100)}...`
-                                    : ticket.description}
-                            </p>
-
-                            <div style={styles.ticketFooter}>
-                                <div style={styles.ticketInfo}>
-                                    <p style={styles.ticketInfoText}>
-                                        Client: {ticket.user?.name || 'Inconnu'}
-                                    </p>
-                                    <p style={styles.ticketInfoText}>
-                                        Agent: {ticket.agent?.name || 'Non assigné'}
-                                    </p>
-                                </div>
-
-                                <div style={styles.ticketActions}>
-                                    {isAgent && !ticket.agent_id && ticket.status === 'open' && (
-                                        <button
-                                            onClick={() => handleAssignTicket(ticket.id)}
-                                            style={styles.actionButton}
-                                        >
-                                            Prendre en charge
-                                        </button>
-                                    )}
-
-                                    {isAgent && ticket.agent_id === authService.getCurrentUser()?.id && (
-                                        <select
-                                            value={ticket.status}
-                                            onChange={(e) => handleStatusChange(ticket.id, e.target.value)}
-                                            style={styles.statusSelect}
-                                        >
-                                            <option value="in_progress">En cours</option>
-                                            <option value="resolved">Résolu</option>
-                                            <option value="closed">Fermé</option>
-                                        </select>
-                                    )}
-
-                                    {!isAgent && ticket.status === 'open' && (
-                                        <button
-                                            onClick={() => handleCancelTicket(ticket.id)}
-                                            style={{ ...styles.actionButton, ...styles.cancelButton }}
-                                        >
-                                            Annuler
-                                        </button>
-                                    )}
-
-                                    <Link
-                                        to={`/tickets/${ticket.id}`}
-                                        style={{ ...styles.actionButton, ...styles.viewButton }}
-                                    >
-                                        Voir détails
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+            {loading ? (
+                <div style={styles.loadingContainer}>
+                    <div style={styles.loadingSpinner}></div>
+                    <p style={styles.loadingText}>Chargement des tickets...</p>
+                </div>
+            ) : error ? (
+                <div style={styles.errorContainer}>
+                    <p style={styles.errorText}>{error}</p>
+                </div>
+            ) : tickets.length === 0 ? (
+                <div style={styles.emptyContainer}>
+                    <p style={styles.emptyText}>Aucun ticket trouvé</p>
+                </div>
+            ) : (
+                <div style={styles.ticketsList}>
+                    {tickets.map(ticket => renderTicketCard(ticket))}
                 </div>
             )}
         </div>
@@ -262,161 +232,109 @@ function TicketList() {
 }
 
 const styles = {
-    container: {
-        padding: '20px',
-        maxWidth: '1200px',
-        margin: '0 auto',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-    },
-    title: {
-        color: '#2c3e50',
-        margin: 0,
-    },
+    container: { maxWidth: '900px', margin: '0 auto', padding: '30px 20px' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' },
+    pageTitle: { fontSize: '1.5rem', fontWeight: '500', color: '#2d3748', margin: 0 },
     createButton: {
-        padding: '10px 20px',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: '4px',
-        fontWeight: 'bold',
+        padding: '8px 16px', backgroundColor: '#6b46c1', color: 'white', borderRadius: '4px',
+        fontSize: '0.9rem', fontWeight: '500', textDecoration: 'none', transition: 'all 0.2s ease'
     },
     filtersContainer: {
-        backgroundColor: '#f8f9fa',
-        padding: '15px',
-        borderRadius: '8px',
-        marginBottom: '20px',
+        backgroundColor: 'white', borderRadius: '6px', padding: '15px',
+        marginBottom: '25px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
     },
-    filtersForm: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '15px',
-        alignItems: 'flex-end',
-    },
-    filterGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        minWidth: '200px',
-    },
-    filterLabel: {
-        marginBottom: '5px',
-        fontWeight: 'bold',
-    },
+    filtersForm: { display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' },
+    filterGroup: { flex: '1', minWidth: '150px' },
     filterSelect: {
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
+        width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '4px',
+        fontSize: '0.9rem', color: '#4a5568', backgroundColor: '#fff', outline: 'none'
     },
     filterInput: {
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
+        width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '4px',
+        fontSize: '0.9rem', color: '#4a5568', backgroundColor: '#fff', outline: 'none'
     },
     filterButton: {
-        padding: '8px 16px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        height: '35px',
+        padding: '8px 16px', backgroundColor: '#6b46c1', color: 'white', border: 'none',
+        borderRadius: '4px', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer'
     },
-    message: {
-        textAlign: 'center',
-        padding: '20px',
-        color: '#7f8c8d',
+    loadingContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '50px 0' },
+    loadingSpinner: {
+        width: '30px', height: '30px', border: '3px solid #f3f3f3', borderTop: '3px solid #6b46c1',
+        borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '15px'
     },
-    errorMessage: {
-        textAlign: 'center',
-        padding: '20px',
-        color: '#e74c3c',
-        backgroundColor: '#fadbd8',
-        borderRadius: '4px',
+    loadingText: { fontSize: '0.95rem', color: '#718096' },
+    errorContainer: {
+        backgroundColor: '#fff5f5', color: '#c53030', padding: '15px',
+        borderRadius: '4px', marginBottom: '20px', textAlign: 'center'
     },
-    ticketList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-    },
+    errorText: { margin: 0, fontSize: '0.95rem' },
+    emptyContainer: { backgroundColor: '#f8fafc', padding: '40px 0', textAlign: 'center', borderRadius: '6px' },
+    emptyText: { color: '#718096', fontSize: '0.95rem', margin: 0 },
+    ticketsList: { display: 'flex', flexDirection: 'column', gap: '15px' },
     ticketCard: {
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        padding: '15px',
-        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+        backgroundColor: 'white', borderRadius: '6px', padding: '20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #edf2f7'
     },
-    ticketHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '10px',
-    },
-    ticketTitle: {
-        margin: 0,
-        fontSize: '1.2rem',
-    },
-    ticketLink: {
-        color: '#2c3e50',
-        textDecoration: 'none',
-    },
+    ticketHeader: { marginBottom: '15px' },
+    titleContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    ticketTitle: { fontSize: '1.1rem', fontWeight: '500', color: '#2d3748', textDecoration: 'none' },
     statusBadge: {
-        padding: '5px 10px',
-        borderRadius: '20px',
-        color: 'white',
-        fontSize: '0.8rem',
-        fontWeight: 'bold',
+        padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem',
+        fontWeight: '500', color: 'white'
     },
-    ticketDescription: {
-        color: '#7f8c8d',
-        margin: '10px 0',
-    },
+    ticketDescription: { fontSize: '0.9rem', color: '#718096', marginBottom: '15px', lineHeight: '1.5' },
     ticketFooter: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: '15px',
-        flexWrap: 'wrap',
-        gap: '10px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: '15px', borderTop: '1px solid #edf2f7', paddingTop: '15px'
     },
-    ticketInfo: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '5px',
-    },
-    ticketInfoText: {
-        margin: 0,
-        fontSize: '0.9rem',
-        color: '#34495e',
-    },
-    ticketActions: {
-        display: 'flex',
-        gap: '10px',
-        flexWrap: 'wrap',
-    },
-    actionButton: {
-        padding: '8px 12px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '0.9rem',
-        textDecoration: 'none',
-    },
-    cancelButton: {
-        backgroundColor: '#e74c3c',
-    },
-    viewButton: {
-        backgroundColor: '#7f8c8d',
+    ticketInfo: { display: 'flex', gap: '20px', flexWrap: 'wrap' },
+    infoItem: { display: 'flex', flexDirection: 'column', gap: '2px' },
+    infoLabel: { fontSize: '0.75rem', color: '#718096' },
+    infoValue: { fontSize: '0.85rem', color: '#4a5568', fontWeight: '500' },
+    ticketActions: { display: 'flex', gap: '10px', flexWrap: 'wrap' },
+    assignButton: {
+        padding: '6px 12px', backgroundColor: '#6b46c1', color: 'white', border: 'none',
+        borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer'
     },
     statusSelect: {
-        padding: '8px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
+        padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: '4px',
+        fontSize: '0.8rem', color: '#4a5568', backgroundColor: '#fff', outline: 'none'
+    },
+    cancelButton: {
+        padding: '6px 12px', backgroundColor: '#e53e3e', color: 'white', border: 'none',
+        borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500', cursor: 'pointer'
+    },
+    viewButton: {
+        padding: '6px 12px', backgroundColor: '#4a5568', color: 'white', border: 'none',
+        borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500', textDecoration: 'none'
     }
 };
+
+const styleSheet = document.createElement('style');
+styleSheet.type = 'text/css';
+styleSheet.innerText = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    ${styles.createButton}:hover, ${styles.filterButton}:hover, ${styles.assignButton}:hover {
+        background-color: #805ad5;
+    }
+    
+    ${styles.cancelButton}:hover {
+        background-color: #c53030;
+    }
+    
+    ${styles.viewButton}:hover {
+        background-color: #2d3748;
+    }
+    
+    input:focus, select:focus {
+        border-color: #9f7aea;
+        box-shadow: 0 0 0 1px #9f7aea;
+    }
+`;
+document.head.appendChild(styleSheet);
 
 export default TicketList;

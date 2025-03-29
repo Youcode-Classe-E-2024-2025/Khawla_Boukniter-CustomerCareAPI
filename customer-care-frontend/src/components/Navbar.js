@@ -26,25 +26,19 @@ function Navbar() {
                                 Tickets
                             </Link>
 
-                            {currentUser?.role === 'client' && (
-                                <Link to="/tickets/new" style={styles.navLink}>
-                                    Nouveau Ticket
-                                </Link>
-                            )}
-
                             <div style={styles.userInfo}>
-                                <span style={styles.username}>
-                                    {currentUser?.name || 'Utilisateur'}
-                                </span>
-                                <span style={styles.role}>
-                                    {currentUser?.role === 'agent' ? 'Agent' : 'Client'}
-                                </span>
+                                <div style={styles.avatar}>
+                                    {currentUser?.name?.charAt(0) || 'U'}
+                                </div>
+                                <div style={styles.userText}>
+                                    <span style={styles.username}>{currentUser?.name}</span>
+                                    <span style={styles.role}>
+                                        {currentUser?.role === 'agent' ? 'Agent' : 'Client'}
+                                    </span>
+                                </div>
                             </div>
 
-                            <button
-                                onClick={handleLogout}
-                                style={styles.logoutButton}
-                            >
+                            <button onClick={handleLogout} style={styles.logoutButton}>
                                 Déconnexion
                             </button>
                         </>
@@ -53,7 +47,7 @@ function Navbar() {
                             <Link to="/login" style={styles.navLink}>
                                 Connexion
                             </Link>
-                            <Link to="/register" style={styles.navLink}>
+                            <Link to="/register" style={styles.registerLink}>
                                 Inscription
                             </Link>
                         </>
@@ -66,9 +60,11 @@ function Navbar() {
 
 const styles = {
     navbar: {
-        backgroundColor: '#2c3e50',
-        padding: '15px 0',
-        color: 'white',
+        backgroundColor: '#ffffff',
+        padding: '12px 0',
+        color: '#333',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        borderBottom: '1px solid #f0f0f0',
     },
     container: {
         display: 'flex',
@@ -79,9 +75,9 @@ const styles = {
         padding: '0 20px',
     },
     logo: {
-        fontSize: '1.5rem',
+        fontSize: '1.3rem',
         fontWeight: 'bold',
-        color: 'white',
+        color: '#4a6fa5',
         textDecoration: 'none',
     },
     navLinks: {
@@ -90,34 +86,91 @@ const styles = {
         gap: '20px',
     },
     navLink: {
-        color: 'white',
+        color: '#555',
         textDecoration: 'none',
         padding: '5px 10px',
         borderRadius: '4px',
-        transition: 'background-color 0.3s',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+    },
+    registerLink: {
+        color: 'white',
+        textDecoration: 'none',
+        padding: '6px 14px',
+        borderRadius: '4px',
+        backgroundColor: '#4a6fa5',
+        fontSize: '0.9rem',
+        fontWeight: '500',
     },
     userInfo: {
         display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+    },
+    avatar: {
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        backgroundColor: '#4a6fa5',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 'bold',
+        fontSize: '0.9rem',
+    },
+    userText: {
+        display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-end',
-        marginRight: '10px',
     },
     username: {
         fontWeight: 'bold',
+        fontSize: '0.9rem',
+        color: '#333',
     },
     role: {
-        fontSize: '0.8rem',
-        opacity: 0.8,
+        fontSize: '0.75rem',
+        color: '#777',
     },
     logoutButton: {
-        backgroundColor: '#e74c3c',
-        color: 'white',
-        border: 'none',
-        padding: '8px 15px',
+        backgroundColor: '#f8f9fa',
+        color: '#dc3545',
+        border: '1px solid #dc3545',
+        padding: '6px 12px',
         borderRadius: '4px',
         cursor: 'pointer',
-        fontSize: '14px',
+        fontSize: '0.85rem',
+        fontWeight: '500',
     }
 };
+
+const styleSheet = document.createElement('style');
+styleSheet.type = 'text/css';
+styleSheet.innerText = `
+    ${styles.navLink}:hover {
+        background-color: #f8f9fa;
+        color: #4a6fa5;
+    }
+    
+    ${styles.registerLink}:hover {
+        background-color: #3a5a8c;
+    }
+    
+    ${styles.logoutButton}:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        ${styles.navLinks} {
+            gap: 10px;
+        }
+        
+        ${styles.userInfo} {
+            display: none;
+        }
+    }
+`;
+document.head.appendChild(styleSheet);
 
 export default Navbar;

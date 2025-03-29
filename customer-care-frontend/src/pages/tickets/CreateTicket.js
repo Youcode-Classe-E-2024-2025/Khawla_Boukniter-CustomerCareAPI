@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import ticketService from '../../services/ticketService';
 import authService from '../../services/authService';
 
@@ -35,8 +35,7 @@ function CreateTicket() {
         setLoading(true);
 
         try {
-            const response = await ticketService.createTicket(formData);
-
+            await ticketService.createTicket(formData);
             navigate('/tickets');
         } catch (err) {
             setError(err.message || 'Erreur lors de la création du ticket. Veuillez réessayer.');
@@ -48,13 +47,20 @@ function CreateTicket() {
     return (
         <div style={styles.container}>
             <div style={styles.formContainer}>
-                <h2 style={styles.title}>Créer un nouveau ticket</h2>
+                <div style={styles.formHeader}>
+                    <h2 style={styles.title}>Nouveau ticket</h2>
+                    <div style={styles.titleAccent}></div>
+                </div>
 
-                {error && <div style={styles.error}>{error}</div>}
+                {error && (
+                    <div style={styles.errorContainer}>
+                        <p style={styles.errorText}>{error}</p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} style={styles.form}>
                     <div style={styles.formGroup}>
-                        <label htmlFor="title" style={styles.label}>Titre:</label>
+                        <label htmlFor="title" style={styles.label}>Titre</label>
                         <input
                             type="text"
                             id="title"
@@ -63,12 +69,12 @@ function CreateTicket() {
                             onChange={handleChange}
                             required
                             style={styles.input}
-                            placeholder="Entrez le titre du ticket"
+                            placeholder="Résumez votre problème en quelques mots"
                         />
                     </div>
 
                     <div style={styles.formGroup}>
-                        <label htmlFor="description" style={styles.label}>Description:</label>
+                        <label htmlFor="description" style={styles.label}>Description</label>
                         <textarea
                             id="description"
                             name="description"
@@ -81,7 +87,7 @@ function CreateTicket() {
                         />
                     </div>
 
-                    <div style={styles.buttonContainer}>
+                    <div style={styles.buttonGroup}>
                         <button
                             type="button"
                             onClick={() => navigate('/tickets')}
@@ -91,10 +97,10 @@ function CreateTicket() {
                         </button>
                         <button
                             type="submit"
-                            style={styles.submitButton}
+                            style={loading ? { ...styles.submitButton, ...styles.buttonLoading } : styles.submitButton}
                             disabled={loading}
                         >
-                            {loading ? 'Création en cours...' : 'Créer le ticket'}
+                            {loading ? 'Création...' : 'Créer le ticket'}
                         </button>
                     </div>
                 </form>
@@ -107,78 +113,148 @@ const styles = {
     container: {
         display: 'flex',
         justifyContent: 'center',
-        padding: '20px',
+        alignItems: 'flex-start',
+        minHeight: 'calc(100vh - 70px)',
+        backgroundColor: '#fafafa',
+        padding: '40px 20px',
     },
     formContainer: {
         width: '100%',
-        maxWidth: '700px',
+        maxWidth: '600px',
+        padding: '35px 30px',
         backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        padding: '20px',
+        borderRadius: '6px',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.04)',
+    },
+    formHeader: {
+        marginBottom: '30px',
+        textAlign: 'center',
+        position: 'relative',
     },
     title: {
-        color: '#2c3e50',
-        textAlign: 'center',
+        fontSize: '1.4rem',
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: '8px',
+        fontFamily: "'Inter', sans-serif",
+        letterSpacing: '-0.01em',
+    },
+    titleAccent: {
+        width: '30px',
+        height: '3px',
+        backgroundColor: '#6b46c1',
+        margin: '0 auto',
+        borderRadius: '2px',
+    },
+    errorContainer: {
+        backgroundColor: '#fff5f5',
+        color: '#c53030',
+        padding: '10px 12px',
+        borderRadius: '4px',
         marginBottom: '20px',
+        fontSize: '0.85rem',
+        border: '1px solid #fed7d7',
+    },
+    errorText: {
+        margin: 0,
     },
     form: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '15px',
+        gap: '20px',
     },
     formGroup: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '5px',
+        gap: '6px',
     },
     label: {
-        fontWeight: 'bold',
-        color: '#2c3e50',
+        fontSize: '0.9rem',
+        fontWeight: '500',
+        color: '#4a5568',
+        fontFamily: "'Inter', sans-serif",
     },
     input: {
-        padding: '10px',
+        width: '100%',
+        padding: '10px 12px',
+        border: '1px solid #e2e8f0',
         borderRadius: '4px',
-        border: '1px solid #ddd',
-        fontSize: '16px',
+        fontSize: '0.9rem',
+        color: '#2d3748',
+        backgroundColor: '#fff',
+        transition: 'all 0.2s ease',
+        fontFamily: "'Inter', sans-serif",
+        outline: 'none',
     },
     textarea: {
-        padding: '10px',
+        width: '100%',
+        padding: '10px 12px',
+        border: '1px solid #e2e8f0',
         borderRadius: '4px',
-        border: '1px solid #ddd',
-        fontSize: '16px',
+        fontSize: '0.9rem',
+        color: '#2d3748',
+        backgroundColor: '#fff',
+        transition: 'all 0.2s ease',
+        fontFamily: "'Inter', sans-serif",
+        outline: 'none',
         resize: 'vertical',
+        minHeight: '120px',
     },
-    buttonContainer: {
+    buttonGroup: {
         display: 'flex',
         justifyContent: 'space-between',
-        marginTop: '20px',
+        gap: '15px',
+        marginTop: '10px',
     },
     cancelButton: {
-        padding: '10px 20px',
-        backgroundColor: '#95a5a6',
-        color: 'white',
-        border: 'none',
+        padding: '10px 15px',
+        backgroundColor: '#f7fafc',
+        color: '#4a5568',
+        border: '1px solid #e2e8f0',
         borderRadius: '4px',
+        fontSize: '0.9rem',
+        fontWeight: '500',
         cursor: 'pointer',
-        fontSize: '16px',
+        transition: 'all 0.2s ease',
+        fontFamily: "'Inter', sans-serif",
+        flex: '1',
     },
     submitButton: {
-        padding: '10px 20px',
-        backgroundColor: '#2ecc71',
+        padding: '10px 15px',
+        backgroundColor: '#6b46c1',
         color: 'white',
         border: 'none',
         borderRadius: '4px',
+        fontSize: '0.9rem',
+        fontWeight: '500',
         cursor: 'pointer',
-        fontSize: '16px',
+        transition: 'all 0.2s ease',
+        fontFamily: "'Inter', sans-serif",
+        flex: '1',
     },
-    error: {
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-        padding: '10px',
-        borderRadius: '4px',
-        marginBottom: '15px',
+    buttonLoading: {
+        backgroundColor: '#9f7aea',
+        cursor: 'not-allowed',
     }
 };
+
+const styleSheet = document.createElement('style');
+styleSheet.type = 'text/css';
+styleSheet.innerText = `
+    input:focus, textarea:focus {
+        border-color: #9f7aea;
+        box-shadow: 0 0 0 1px #9f7aea;
+    }
+    
+    ${styles.submitButton}:hover {
+        background-color: #805ad5;
+    }
+    
+    ${styles.cancelButton}:hover {
+        background-color: #edf2f7;
+        border-color: #cbd5e0;
+    }
+`;
+document.head.appendChild(styleSheet);
 
 export default CreateTicket;
