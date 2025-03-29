@@ -145,6 +145,147 @@ function TicketDetail() {
         return new Date(dateString).toLocaleDateString('fr-FR', options);
     };
 
+    const renderTicketHistory = () => {
+        if (!ticket) return null;
+
+        const historyItems = [];
+
+        historyItems.push({
+            id: `ticket-creation-${ticket.id}`,
+            type: 'creation',
+            date: ticket.created_at,
+            user: ticket.user,
+            content: ticket.description,
+            title: 'Création du ticket'
+        });
+
+        if (responses && responses.length > 0) {
+            responses.forEach(response => {
+                historyItems.push({
+                    id: `response-${response.id}`,
+                    type: 'response',
+                    date: response.created_at,
+                    user: response.user,
+                    content: response.content,
+                    title: 'Réponse ajoutée'
+                });
+            });
+        }
+
+        if (ticket.resolved_at) {
+            historyItems.push({
+                id: `status-resolved-${ticket.id}`,
+                type: 'status',
+                date: ticket.resolved_at,
+                user: ticket.agent || { name: 'Système' },
+                content: 'Le ticket a été marqué comme résolu',
+                title: 'Statut changé',
+                status: 'resolved'
+            });
+        }
+
+        if (ticket.cancelled_at) {
+            historyItems.push({
+                id: `status-cancelled-${ticket.id}`,
+                type: 'status',
+                date: ticket.cancelled_at,
+                user: ticket.user,
+                content: 'Le ticket a été annulé',
+                title: 'Statut changé',
+                status: 'cancelled'
+            });
+        }
+
+        if (ticket.agent_id) {
+
+            historyItems.push({
+                id: `assignment-${ticket.id}`,
+                type: 'assignment',
+                user: ticket.agent,
+                content: `Le ticket a été assigné à ${ticket.agent.name}`,
+                title: 'Assignation'
+            });
+        }
+
+        historyItems.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        return (
+            <div style={styles.historyContainer}>
+                <h3 style={styles.sectionTitle}>Historique du ticket</h3>
+
+                <div style={styles.timeline}>
+                    {historyItems.map(item => (
+                        <div key={item.id} style={styles.timelineItem}>
+                            <div style={styles.timelineIconContainer}>
+                                <div
+                                    style={{
+                                        ...styles.timelineIcon,
+                                        backgroundColor: getEventColor(item.type)
+                                    }}
+                                >
+                                    {getEventIcon(item.type)}
+                                </div>
+                                <div style={styles.timelineLine}></div>
+                            </div>
+
+                            <div style={styles.timelineContent}>
+                                <div style={styles.timelineHeader}>
+                                    <div style={styles.timelineTitle}>
+                                        <strong>{item.title}</strong>
+                                        <span style={styles.timelineDate}>
+                                            {formatDate(item.date)}
+                                        </span>
+                                    </div>
+                                    <div style={styles.timelineUser}>
+                                        {item.user?.name || 'Système'}
+                                        {item.user?.role &&
+                                            <span style={styles.userRole}>
+                                                ({item.user.role === 'agent' ? 'Agent' : 'Client'})
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div style={styles.timelineBody}>
+                                    {item.type === 'status' ? (
+                                        <div style={{
+                                            ...styles.statusBadge,
+                                            backgroundColor: getStatusColor(item.status)
+                                        }}>
+                                            {translateStatus(item.status)}
+                                        </div>
+                                    ) : (
+                                        item.content
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const getEventColor = (type) => {
+        switch (type) {
+            case 'creation': return '#3498db';
+            case 'response': return '#2ecc71';
+            case 'status': return '#f39c12';
+            case 'assignment': return '#9b59b6';
+            default: return '#95a5a6';
+        }
+    };
+
+    const getEventIcon = (type) => {
+        switch (type) {
+            case 'creation': return '✉️';
+            case 'response': return '💬';
+            case 'status': return '🔄';
+            case 'assignment': return '👤';
+            default: return '•';
+        }
+    };
+
     if (loading) {
         return (
             <div style={styles.loadingContainer}>
@@ -290,6 +431,8 @@ function TicketDetail() {
                 </div>
             </div>
 
+            {renderTicketHistory()}
+
             <div style={styles.responsesSection}>
                 <h3 style={styles.sectionTitle}>Réponses</h3>
 
@@ -364,6 +507,84 @@ function TicketDetail() {
 }
 
 const styles = {
+    historyContainer: {
+        marginTop: '30px',
+        marginBottom: '30px',
+        backgroundColor: '#f8f9fa',
+        padding: '20px',
+        borderRadius: '8px',
+    },
+    timeline: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0',
+    },
+    timelineItem: {
+        display: 'flex',
+        padding: '15px 0',
+    },
+    timelineIconContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginRight: '15px',
+    },
+    timelineIcon: {
+        width: '36px',
+        height: '36px',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: 'white',
+        fontSize: '16px',
+        zIndex: 1,
+    },
+    timelineLine: {
+        width: '2px',
+        flex: 1,
+        backgroundColor: '#e2e8f0',
+        margin: '4px 0',
+    },
+    timelineContent: {
+        flex: 1,
+        backgroundColor: 'white',
+        padding: '15px',
+        borderRadius: '8px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    },
+    timelineHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: '10px',
+        flexWrap: 'wrap',
+    },
+    timelineTitle: {
+        display: 'flex',
+        flexDirection: 'column',
+        color: '#2c3e50',
+    },
+    timelineDate: {
+        fontSize: '0.8rem',
+        color: '#7f8c8d',
+        marginTop: '3px',
+    },
+    timelineUser: {
+        fontSize: '0.9rem',
+        color: '#2c3e50',
+        fontWeight: 'bold',
+    },
+    userRole: {
+        fontWeight: 'normal',
+        color: '#7f8c8d',
+        marginLeft: '4px',
+    },
+    timelineBody: {
+        lineHeight: '1.5',
+        color: '#34495e',
+        whiteSpace: 'pre-wrap',
+        width: 'fit-content',
+    },
     container: {
         maxWidth: '800px',
         margin: '0 auto',
